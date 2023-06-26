@@ -14,14 +14,16 @@ WORKDIR /dump1090/
 RUN tar -xvf ../dump1090-fa.tar.gz --strip-components=1
 RUN make BLADERF=NO HACKRF=no LIMESDR=no DUMP1090_VERSION="${DUMP1090_VERSION}"
 RUN make test
+RUN make wisdom.local
 
 FROM base
 RUN apt update && apt install -y rtl-sdr libncurses6
 COPY --from=builder /dump1090/dump1090 /usr/local/bin/dump1090
+COPY --from=builder /dump1090/wisdom.local /usr/local/etc/wisdom.local
 
 # Raw output
 EXPOSE 30002/tcp
 # Beast output
 EXPOSE 30005/tcp
 
-ENTRYPOINT ["/usr/local/bin/dump1090", "--net", "--net-bind-address", "0.0.0.0", "--net-heartbeat", "10"]
+ENTRYPOINT ["/usr/local/bin/dump1090", "--net", "--net-bind-address", "0.0.0.0", "--net-heartbeat", "10", "--wisdom", "/usr/local/etc/wisdom.local"]
